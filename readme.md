@@ -2,7 +2,7 @@
 
 Aplicación que detecta qrs de momento
 
-## Instalación
+## Instalación Aplicación
 
 1. Descargar el repositorio 
     ```
@@ -39,3 +39,27 @@ Aplicación que detecta qrs de momento
     ```
     flask --app main run --reload
     ```
+
+### Instalación API
+
+1. Instala dependencias
+    ```
+    cd api
+    npm install
+    ```
+
+2. Inicia la API
+    ```
+    node api.js
+    ```
+
+### Instalación Base de Datos
+
+1. Entra a MySQL
+    ```
+    mysql -u root -p
+    ```
+
+2. Crear las tablas con el archivo `table_creation.sql`
+
+3. Crear los datos de prueba con el archivo `insert_sample_data.sql`
