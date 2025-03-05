@@ -12,3 +12,7 @@ htmlcov/
 dist/
 build/
 *.egg-info/
+
+api/.env
+
+node_modules

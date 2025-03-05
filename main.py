@@ -2,6 +2,9 @@ from flask import Flask, render_template, request
 import cv2
 import numpy as np
 import base64
+import requests
+import re
+import json
 
 app = Flask(__name__)
 
@@ -48,7 +51,31 @@ def scan_qr():
         if bbox is None or not data:
             return "No QR code detected. Ensure proper lighting, clear image, and avoid reflections.", 400
         
-        return f"QR Code Data: {data}"
+        if not re.search(r'((producto)|(orden)|(paquete))\s\d+', data):
+            return "Invalid QR code, please provide a valid BioCrowny Code.", 400
+        
+        type = data.split()[0]
+        id = data.split()[1]
+        
+        api_url = f"http://localhost:3000/{type}/{id}"  # Cambia esto por tu URL
+        
+        # Hacer la solicitud GET
+        response = requests.get(api_url)
+        data = json.loads(response.text)
+
+        return_data = "Data not available..."
+        if type == 'producto':
+            return_data = data['Nombre']
+        if type == 'paquete':
+            return_data = data
+        if type == 'orden':
+            return_data = data
+        
+        # Verificar si la solicitud fue exitosa
+        if response.status_code == 200:
+            return f"{return_data}"
+        else:
+            return f"QR Code Data: {data}\nFailed to send request: {response.status_code}"
     except Exception as e:
         return f"Internal Server Error: {str(e)}", 500
 
