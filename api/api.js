@@ -3,7 +3,7 @@ const express = require('express');
 const mysql = require('mysql2');
 
 const app = express();
-const port = 3000;
+const port = 3000; //
 
 // Configuración de la conexión a MySQL usando variables de entorno
 const connection = mysql.createConnection({
@@ -125,6 +125,6 @@ app.get('/paquete/:id', (req, res) => {
 });
 
 // Iniciar el servidor
-app.listen(port, () => {
+app.listen(port, '0.0.0.0',() => {
     console.log(`API escuchando en http://localhost:${port}`);
 });
