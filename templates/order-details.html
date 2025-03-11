@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles de la Orden</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        #order-info {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid black;
+            display: inline-block;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Detalles de la Orden</h1>
+    <div id="order-info">Cargando detalles...</div>
+
+    <script>
+        // Obtener el ID de la orden desde la URL
+        const params = new URLSearchParams(window.location.search);
+        const orderId = params.get("id");
+
+        async function fetchOrderDetails() {
+            if (!orderId) {
+                document.getElementById("order-info").innerText = "No se encontró un ID de orden válido. 123";
+                return;
+            }
+
+            try {
+                const response = await fetch(`/orden/${orderId}`); // Llama a tu API Flask
+                const order = await response.json();
+
+                if (response.ok) {
+                    document.getElementById("order-info").innerHTML = `
+                        <p><strong>Orden ID:</strong> ${order.OrdenID}</p>
+                        <p><strong>Cliente ID:</strong> ${order.ClienteID}</p>
+                        <p><strong>Fecha:</strong> ${order.FechaOrden}</p>
+                        <p><strong>Estado:</strong> ${order.Estado}</p>
+                        <h3>Productos en esta orden:</h3>
+                        <ul id="productos-list"></ul>
+                    `;
+
+                    // Obtener los productos de la orden
+                    fetch(`/productos-por-orden/${orderId}`)
+                        .then(res => res.json())
+                        .then(productos => {
+                            const list = document.getElementById("productos-list");
+                            list.innerHTML = productos.map(p => `<li>${p.Nombre} - ${p.Cantidad}</li>`).join("");
+                        });
+                } else {
+                    document.getElementById("order-info").innerText = "Orden no encontrada.";
+                }
+            } catch (error) {
+                document.getElementById("order-info").innerText = "Error al obtener los detalles.";
+                console.error(error);
+            }
+        }
+
+        fetchOrderDetails();
+    </script>
+</body>
+</html>

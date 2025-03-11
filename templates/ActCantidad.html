@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner Orden</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        video, canvas {
+            width: 100%;
+            max-width: 320px;
+            height: 480px;
+            object-fit: cover;
+            border: 2px solid black;
+        }
+        canvas {
+            display: none;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>QR Code Scanner Orders</h1>
+    <p id="OrderID"></p>
+    <p id="CantEsc"></p>
+    <p id="CantTot"></p>
+    <video id="camera" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
+    <button id="capture">Take Photo</button>
+    <p id="result">QR Code Result: </p>
+
+    
+
+    <script>
+        // Obtener el ID de la orden desde la URL
+        const pathParts = window.location.pathname.split("/"); 
+        const orderID = pathParts[pathParts.length - 3];  // Orden ID
+        const cantidadTotal = pathParts[pathParts.length - 2];  // Cantidad escaneada
+        let CantidadEscaneada = parseInt(pathParts[pathParts.length - 1], 10);  // Producto ID
+
+        console.log("ID de la orden:", orderID);
+        console.log("Cantidad total:", cantidadTotal);
+        console.log("Cantidad escaneada:", CantidadEscaneada);
+
+        document.getElementById("OrderID").innerText = "Order ID: " + orderID;
+        document.getElementById("CantEsc").innerText = "Cantidad Escaneada: " + CantidadEscaneada;
+        document.getElementById("CantTot").innerText = "Cantidad Total: " + cantidadTotal;
+
+
+        const video = document.getElementById("camera");
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        const captureButton = document.getElementById("capture");
+        const resultText = document.getElementById("result");
+        let isCapturing = false;
+
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                video.srcObject = stream;
+            } catch (error) {
+                console.error("Error accessing camera:", error);
+            }
+        }
+
+        captureButton.addEventListener("click", async () => {
+            if (!isCapturing) {
+                // Freeze frame
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                video.style.display = "none"; // Hide video
+                canvas.style.display = "block"; // Show frozen frame
+                captureButton.innerText = "Take another Photo"; // Change button text
+                isCapturing = true;
+
+                // Convert image to Blob and send to Flask
+                canvas.toBlob(async (blob) => {
+                    const formData = new FormData();
+                    formData.append("qr_code", blob, "qr_code.png");
+
+                        // Actualizar para PUT API
+                    const response = await fetch(`/updateOrden/${CantidadEscaneada}/${orderID}`, {
+                        method: "PUT",
+                        body: formData,
+                    });
+
+                    CantidadEscaneada = CantidadEscaneada + 1;
+                    console.log("Cantidad Escaneada: ", CantidadEscaneada);
+
+                    const text = await response.text();
+                    document.getElementById("result").innerText = text;
+                    document.getElementById("CantEsc").innerText = "Cantidad Escaneada: " + CantidadEscaneada;
+                    //resultText.innerText = text; // Display QR code result
+
+                   
+
+                    if(CantidadEscaneada == cantidadTotal){
+                        let resultElement = document.getElementById("result");
+                        resultElement.innerText = "Orden Completada";
+                        resultElement.style.color = "green";
+                        resultElement.style.fontSize = "20px";
+                        resultElement.style.fontWeight = "bold";
+                        document.getElementById("result").addEventListener("click",
+                            () => {
+                                window.location.href = '/';
+                                //ActCantidad orderdetails
+                            }
+                        )
+                    }
+                }, "image/png");
+            } else {
+                // Restart camera
+                video.style.display = "block";
+                canvas.style.display = "none";
+                captureButton.innerText = "Take Photo";
+                isCapturing = false;
+            }
+        });
+
+        startCamera();
+    </script>
+</body>
+</html>

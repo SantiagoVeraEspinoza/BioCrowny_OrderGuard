@@ -1,0 +1,113 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escaneo de paquete</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        video, canvas {
+            width: 100%;
+            max-width: 320px;
+            height: 480px;
+            object-fit: cover;
+            border: 2px solid black;
+        }
+        canvas {
+            display: none;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>QR Code Scanner</h1>
+    <h3>Escanea el QR que se encuentra en el Paquete para desplegar los productos dentro De esta Orden.</h3>
+    <video id="camera" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
+    <button id="capture">Tomar foto</button>
+    <p id="result">Resultado:</p>
+    <div id="orderDetails"></div> <!-- New container for the order details -->
+
+    <script>
+        const video = document.getElementById("camera");
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        const captureButton = document.getElementById("capture");
+        const resultText = document.getElementById("result");
+        const orderDetails = document.getElementById("orderDetails"); // Todo esto creado por mi
+        let isCapturing = false;
+
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                video.srcObject = stream;
+            } catch (error) {
+                console.error("Error accessing camera:", error);
+            }
+        }
+
+        captureButton.addEventListener("click", async () => {
+            if (!isCapturing) {
+                // Freeze frame
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                video.style.display = "none"; // Hide video
+                canvas.style.display = "block"; // Show frozen frame
+                captureButton.innerText = "Retake Photo"; // Change button text
+                isCapturing = true;
+
+                // Convert image to Blob and send to Flask
+                canvas.toBlob(async (blob) => {
+                    const formData = new FormData();
+                    formData.append("qr_code", blob, "qr_code.png");
+
+                    const response = await fetch("/scanpackage", {
+                        method: "POST",
+                        body: formData,
+                    });
+
+                    const responseText = await response.text();
+                    console.log("Log de la DB : "+responseText);
+
+                    const fixedJSON = responseText.replace(/'/g, '"'); // Cambia las ' por " para que sea un JSON válido
+                    const responseData = JSON.parse(fixedJSON); //Crea el JSON para acceder a los componenetes individuales
+
+                    console.log("OrderID:", responseData.OrderID);
+                    console.log("PaqueteID:", responseData.PaqueteID);
+                    console.log("ProductoID:", responseData.ProductoID);
+                    console.log("Cantidad Total:", responseData.CantidadTotal);
+                    console.log("Cantidad Escaneada:", responseData.CantidadEscaneada);
+
+                    const text = `Tu paquete tiene la orden con ID: ${responseData.OrderID}`;
+                    resultText.innerText = text; // Display QR code result
+
+                    orderDetails.innerHTML = `
+                    <p>¿Quieres ver los detalles de tu orden con ID ${responseData.OrderID}?</p>
+                    <button id="viewDetails">Ver detalles</button>
+                `;
+                    document.getElementById("viewDetails").addEventListener("click", () => {
+                        window.location.href = `/ActCantidad/${responseData.OrderID}/${responseData.CantidadTotal}/${responseData.CantidadEscaneada}`; //ActCantidad orderdetails
+                    });
+                }, "image/png");
+            } else {
+                // Restart camera
+                video.style.display = "block";
+                canvas.style.display = "none";
+                captureButton.innerText = "Take Photo";
+                isCapturing = false;
+            }
+        });
+
+        startCamera();
+    </script>
+</body>
+</html>

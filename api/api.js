@@ -39,7 +39,7 @@ app.get('/cliente/:id', (req, res) => {
 });
 
 // Ruta para obtener un producto por ID
-app.get('/producto/:id', (req, res) => {
+app.get('/product/:id', (req, res) => {
     const id = req.params.id;
     const query = 'SELECT * FROM Producto WHERE ProductoID = ?';
 
@@ -54,7 +54,8 @@ app.get('/producto/:id', (req, res) => {
     });
 });
 
-// Ruta para obtener una orden por ID
+// Ruta para obtener una orden por ID, comentada para usar la de ROGER
+/*
 app.get('/orden/:id', (req, res) => {
     const id = req.params.id;
     const query = 'SELECT * FROM Orden WHERE OrderID = ?';
@@ -69,6 +70,43 @@ app.get('/orden/:id', (req, res) => {
         }
     });
 });
+*/
+
+// Ruta para obtener una orden por ID ROGER (No es la forma correcta cambiar la llamada de API de orden, deberia haber creado otra pendiente)
+app.get('/orden/:id', (req, res) => {
+    const id = req.params.id;
+    const query = 'SELECT * FROM Orden WHERE PaqueteID = ?';
+
+    connection.query(query, [id], (err, results) => {
+        if (err) {
+            res.status(500).json({ error: 'Error al consultar la base de datos' });
+        } else if (results.length > 0) {
+            res.json(results[0]); // Devuelve el primer resultado  => results[0]
+            //console.log(results);
+            //console.log(results[0]);
+        } else {
+            res.status(404).json({ error: 'Producto no encontrado' });
+        }
+    });
+});
+// Ruta para actualizar la cantidad escaneada en la orden
+app.put('/orden/:id/:cantidadEscaneada', (req, res) => { //id de la orden y cantidad escaneada
+    const id = req.params.id; //ID de la orden
+    let CantidadEscaneada = parseInt(req.params.cantidadEscaneada) + 1;  //Cantidad escaneada +1
+
+    const query = 'UPDATE Orden SET CantidadEscaneada = ? WHERE OrderID = ?';
+
+    connection.query(query, [CantidadEscaneada, id], (err, results) => {
+        if (err) {
+            res.status(500).json({ error: 'Error al actualizar la base de datos' });
+        } else if (results.affectedRows > 0) {
+            res.json({ message: 'Cantidad escaneada actualizada a'+CantidadEscaneada+1 });
+        } else {
+            res.status(404).json({ error: 'Orden no encontrada' });
+        }
+    });
+});
+
 
 // Ruta para obtener un paquete por ID
 app.get('/paquete/:id', (req, res) => {
