@@ -41,7 +41,7 @@
         const pathParts = window.location.pathname.split("/"); 
         const orderID = pathParts[pathParts.length - 3];  // Orden ID
         const cantidadTotal = pathParts[pathParts.length - 2];  // Cantidad escaneada
-        const CantidadEscaneada = pathParts[pathParts.length - 1];  // Producto ID
+        let CantidadEscaneada = parseInt(pathParts[pathParts.length - 1], 10);  // Producto ID
 
         console.log("ID de la orden:", orderID);
         console.log("Cantidad total:", cantidadTotal);
@@ -72,7 +72,7 @@
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 video.style.display = "none"; // Hide video
                 canvas.style.display = "block"; // Show frozen frame
-                captureButton.innerText = "Retake Photo"; // Change button text
+                captureButton.innerText = "Take another Photo"; // Change button text
                 isCapturing = true;
 
                 // Convert image to Blob and send to Flask
@@ -81,10 +81,13 @@
                     formData.append("qr_code", blob, "qr_code.png");
 
                         // Actualizar para PUT API
-                    const response = await fetch("/updateOrden", {
+                    const response = await fetch(`/updateOrden/${CantidadEscaneada}/${orderID}`, {
                         method: "PUT",
                         body: formData,
                     });
+
+                    CantidadEscaneada = CantidadEscaneada + 1;
+                    console.log("Cantidad Escaneada: ", CantidadEscaneada);
 
                     const text = await response.text();
                     resultText.innerText = text; // Display QR code result

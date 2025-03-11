@@ -82,8 +82,8 @@ app.get('/orden/:id', (req, res) => {
             res.status(500).json({ error: 'Error al consultar la base de datos' });
         } else if (results.length > 0) {
             res.json(results[0]); // Devuelve el primer resultado  => results[0]
-            console.log(results);
-            console.log(results[0]);
+            //console.log(results);
+            //console.log(results[0]);
         } else {
             res.status(404).json({ error: 'Producto no encontrado' });
         }
@@ -100,7 +100,7 @@ app.put('/orden/:id/:cantidadEscaneada', (req, res) => { //id de la orden y cant
         if (err) {
             res.status(500).json({ error: 'Error al actualizar la base de datos' });
         } else if (results.affectedRows > 0) {
-            res.json({ message: 'Cantidad escaneada actualizada' });
+            res.json({ message: 'Cantidad escaneada actualizada a'+CantidadEscaneada+1 });
         } else {
             res.status(404).json({ error: 'Orden no encontrada' });
         }

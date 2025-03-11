@@ -154,8 +154,8 @@ def scan_qr():
         return f"Internal Server Error: {str(e)}", 500
 
 
-@app.route('/updateOrden', methods=['PUT']) #Endpoint para actualizar la cantidad escaneada
-def updateOrden():
+@app.route('/updateOrden/<int:can_Esc>/<int:id_Orden>', methods=['PUT']) #Endpoint para actualizar la cantidad escaneada
+def updateOrden(can_Esc, id_Orden): 
     try:
         file = request.files.get('qr_code')
         if not file:
@@ -186,8 +186,8 @@ def updateOrden():
             return {"error": "Invalid QR code, please provide a valid BioCrowny Code."}, 400
 
         tipo_qr = "orden"
-        cantidadEscaneada = 5 #Cantidad escaneada de la orden
-        id = 2 #Id de la orden
+        cantidadEscaneada = can_Esc #Cantidad escaneada de la orden
+        id = id_Orden #Id de la orden
 
         # API endpoint correcto
         api_url = f"http://localhost:3000/orden/{id}/{cantidadEscaneada}"  
@@ -198,8 +198,9 @@ def updateOrden():
         # Hacer la solicitud PUT
         response = requests.put(api_url, json=payload)
         response.raise_for_status()  # Si hay error, lanza una excepción
+        cantNueva = str(cantidadEscaneada + 1)
 
-        return {"mensaje": "Cantidad escaneada actualizada correctamente"}
+        return {"mensaje": "Cantidad escaneada actualizada correctamente a "+cantNueva}
 
     except requests.exceptions.RequestException as e:
         return {"error": f"Error al actualizar: {str(e)}"}, 500
