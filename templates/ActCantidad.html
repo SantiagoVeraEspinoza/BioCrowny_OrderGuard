@@ -29,6 +29,9 @@
 </head>
 <body>
     <h1>QR Code Scanner Orders</h1>
+    <p id="OrderID"></p>
+    <p id="CantEsc"></p>
+    <p id="CantTot"></p>
     <video id="camera" autoplay playsinline></video>
     <canvas id="canvas"></canvas>
     <button id="capture">Take Photo</button>
@@ -46,6 +49,10 @@
         console.log("ID de la orden:", orderID);
         console.log("Cantidad total:", cantidadTotal);
         console.log("Cantidad escaneada:", CantidadEscaneada);
+
+        document.getElementById("OrderID").innerText = "Order ID: " + orderID;
+        document.getElementById("CantEsc").innerText = "Cantidad Escaneada: " + CantidadEscaneada;
+        document.getElementById("CantTot").innerText = "Cantidad Total: " + cantidadTotal;
 
 
         const video = document.getElementById("camera");
@@ -90,7 +97,25 @@
                     console.log("Cantidad Escaneada: ", CantidadEscaneada);
 
                     const text = await response.text();
-                    resultText.innerText = text; // Display QR code result
+                    document.getElementById("result").innerText = text;
+                    document.getElementById("CantEsc").innerText = "Cantidad Escaneada: " + CantidadEscaneada;
+                    //resultText.innerText = text; // Display QR code result
+
+                   
+
+                    if(CantidadEscaneada == cantidadTotal){
+                        let resultElement = document.getElementById("result");
+                        resultElement.innerText = "Orden Completada";
+                        resultElement.style.color = "green";
+                        resultElement.style.fontSize = "20px";
+                        resultElement.style.fontWeight = "bold";
+                        document.getElementById("result").addEventListener("click",
+                            () => {
+                                window.location.href = '/';
+                                //ActCantidad orderdetails
+                            }
+                        )
+                    }
                 }, "image/png");
             } else {
                 // Restart camera
