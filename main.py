@@ -6,6 +6,9 @@ import requests
 import re
 import json
 
+API_URL = "http://10.43.99.132:3000"
+#API_URL = "http://localhost:3000"
+
 app = Flask(__name__)
 
 @app.route('/')
@@ -69,7 +72,7 @@ def scan_qr():
         type = data.split()[0] #Que tipo de qr es ?
         id = data.split()[1]
         
-        api_url = f"http://localhost:3000/{type}/{id}"  # Cambia esto por tu URL
+        api_url = f"{API_URL}/{type}/{id}"  # Cambia esto por tu URL
         
         # Hacer la solicitud GET
         response = requests.get(api_url)
@@ -190,7 +193,7 @@ def updateOrden(can_Esc, id_Orden):
         id = id_Orden #Id de la orden
 
         # API endpoint correcto
-        api_url = f"http://localhost:3000/orden/{id}/{cantidadEscaneada}"  
+        api_url = f"{API_URL}/orden/{id}/{cantidadEscaneada}"  
         # URL QUE DA {"error":"Error al actualizar: 404 Client Error: Not Found for url: http://localhost:3000/orden/2/5"}
 
         payload = {"id": id, "CantidadEscaneada": cantidadEscaneada}
@@ -253,7 +256,7 @@ def scanpackage_qr():
         type = data.split()[0]
         id = data.split()[1]
         
-        api_url = f"http://localhost:3000/orden/{id}"  # Cambia esto por tu URL
+        api_url = f"{API_URL}/orden/{id}"  # Cambia esto por tu URL
         
         # Hacer la solicitud GET
         response = requests.get(api_url)
